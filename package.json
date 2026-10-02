@@ -1,16 +1,14 @@
 {
 	"name": "pipa-api",
-	"version": "0.0.0",
+	"version": "0.0.1",
 	"private": true,
 	"scripts": {
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
 		"start": "wrangler dev",
-		"test": "vitest"
+		"seed:local": "wrangler d1 execute pipa --local --file=./schema.sql"
 	},
 	"devDependencies": {
-		"@cloudflare/vitest-plugin": "^1.0.0",
-		"vitest": "~4.1.0",
 		"wrangler": "^4.145.0"
 	}
 }
