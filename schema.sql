@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS tasks (
 CREATE TABLE IF NOT EXISTS views (
     id INTEGER PRIMARY KEY,
     project_id INTEGER NOT NULL REFERENCES projects(id),
-    name TEXT NOT NULL
+    name TEXT NOT NULL,
+    is_default INTEGER NOT NULL CHECK (is_default IN (0, 1)) DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS sections (
