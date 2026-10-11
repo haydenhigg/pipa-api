@@ -1,5 +1,5 @@
 export async function getProjects(c) {
-	const { results } = await c.env.DB.prepare(`SELECT id, name FROM projects`).all()
+	const { results } = await c.env.DB.prepare(`SELECT id, name, created_at FROM projects`).all()
 	return results
 }
 
@@ -9,97 +9,52 @@ export async function getProject(c, projectId) {
 		.first()
 }
 
-export async function getViews(c, projectId) {
-	const { results } = await c.env.DB.prepare(`
-		SELECT
-			id,
-			name,
-			is_default
-		FROM
-			views
-		WHERE
-			project_id = ?
-	`)
-		.bind(projectId)
-		.all()
-
-	return results
-}
-
 function groupTasks(rows) {
 	const tasks = []
+	const indicesById = {}
 
 	for (const row of rows) {
-		const task = {
-			id: row.id,
-			content: row.content,
-			ordinal: row.ordinal
-		}
+		const task = { ...row, tasks: [] };
 
-		if (!tasks || row.section_id !== tasks[tasks.length - 1]?.sectionId) {
-			tasks.push({
-				sectionId: row.section_id,
-				sectionName: row.section_name,
-				sectionOrdinal: row.section_ordinal,
-				tasks: [task]
-			})
+		if (!task.parent_task_id) {
+			tasks.push(task)
+			indicesById[task.id] = [tasks.length - 1]
+		} else if (!indicesById.hasOwnProperty(task.parent_task_id)) {
+			continue
 		} else {
-			tasks[tasks.length - 1].tasks.push(task)
+			const parentIndices = indicesById[row.parent_task_id]
+
+			let parent = tasks
+			for (const index of parentIndices) parent = parent[index]
+
+			parent.tasks.push(task)
+			indicesById[task.id] = parentIndices.concat(['tasks', parent.tasks.length - 1])
 		}
 	}
 
 	return tasks
 }
 
-export async function getDefaultTasks(c, projectId) {
+export async function getTasks(c, projectId) {
 	const { results } = await c.env.DB.prepare(`
 		SELECT
-			NULL section_id,
-			NULL section_name,
-			NULL section_ordinal,
 			t.id,
-			t.content,
-			t.ordinal
+			t.title,
+			t.body,
+			t.created_at,
+			tl.parent_task_id,
+			tl.ordinal
 		FROM
 			tasks t
+		JOIN
+			task_locations tl ON tl.task_id = t.id
 		WHERE
-			t.project_id = ?1
+			t.project_id = ?
 		ORDER BY
-			-- s.ordinal,
-			-- st.ordinal,
-			t.ordinal
+			tl.parent_task_id,
+			tl.ordinal
 	`)
 		.bind(projectId)
-		.all()
-
-	return groupTasks(results)
-}
-
-export async function getTasksForView(c, projectId, viewId) {
-	const { results } = await c.env.DB.prepare(`
-		SELECT
-			s.id section_id,
-			s.name section_name,
-			s.ordinal section_ordinal,
-			t.id,
-			t.content,
-			st.ordinal
-		FROM
-			tasks t
-		JOIN
-			section_tasks st ON st.task_id = t.id
-		JOIN
-			sections s ON
-				s.id = st.section_id AND
-				s.view_id = ?2
-		WHERE
-			t.project_id = ?1
-		ORDER BY
-			s.ordinal,
-			st.ordinal,
-			t.ordinal
-	`)
-		.bind(projectId, viewId)
 		.all()
 
 	return groupTasks(results)
