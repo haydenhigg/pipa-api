@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     project_id INTEGER NOT NULL REFERENCES projects(id),
     title TEXT NOT NULL DEFAULT '',
     body TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL CHECK (status IN ('unstarted', 'started', 'done')),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -35,31 +36,32 @@ CREATE TABLE IF NOT EXISTS task_locations (
 INSERT INTO projects(name) VALUES ('Steppe');
 
 INSERT INTO
-    tasks(project_id, title)
+    tasks(project_id, title, status)
 VALUES
-    (1, 'Database'),
-    (1, 'Define database schema'),
-    (1, 'Mobile app for keyholders'),
-    (1, 'BLE integration'),
-    (1, 'Native key storage'),
-    (1, 'Unlock'),
-    (1, 'Auth'),
-    (1, 'Web app for administrators'),
-    (1, 'Keyholder CRUD'),
-    (1, 'Credential CRUD'),
-    (1, 'Enrollment/registration'),
-    (1, 'Key propagation'),
-    (1, 'Logging/auditing'),
-    (1, 'Auth'),
-    (1, 'Hardware'),
-    (1, 'Controller'),
-    (1, 'RF sending'),
-    (1, 'RF receiving'),
-    (1, 'Key propagation/storage'),
-    (1, 'Nonce generation'),
-    (1, 'Reader'),
-    (1, 'RF sending'),
-    (1, 'RF receiving');
+    (1, 'Database', 'unstarted'),
+    (1, 'Define database schema', 'unstarted'),
+    (1, 'Mobile app for keyholders', 'unstarted'),
+    (1, 'BLE integration', 'unstarted'),
+    (1, 'Native key storage', 'unstarted'),
+    (1, 'Unlock', 'unstarted'),
+    (1, 'Auth', 'unstarted'),
+    (1, 'Web app for administrators', 'unstarted'),
+    (1, 'Keyholder CRUD', 'unstarted'),
+    (1, 'Credential CRUD', 'unstarted'),
+    (1, 'Enrollment/registration', 'unstarted'),
+    (1, 'Key propagation', 'unstarted'),
+    (1, 'Logging/auditing', 'unstarted'),
+    (1, 'Auth', 'unstarted'),
+    (1, 'Hardware', 'unstarted'),
+    (1, 'Controller', 'unstarted'),
+    (1, 'RF sending', 'unstarted'),
+    (1, 'RF receiving', 'unstarted'),
+    (1, 'Key propagation/storage', 'unstarted'),
+    (1, 'Nonce generation', 'unstarted'),
+    (1, 'Reader', 'started'),
+    (1, 'BLE advertising', 'started'),
+    (1, 'RF sending', 'unstarted'),
+    (1, 'RF receiving', 'unstarted');
 
 INSERT INTO
     task_locations(task_id, parent_task_id, ordinal)
@@ -86,4 +88,5 @@ VALUES
     (20, 16, 3),
     (21, 15, 1),
     (22, 21, 0),
-    (23, 21, 1);
+    (23, 21, 1),
+    (24, 21, 2);

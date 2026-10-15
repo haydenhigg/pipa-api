@@ -41,6 +41,7 @@ export async function getTasks(c, projectId) {
 			t.id,
 			t.title,
 			t.body,
+			t.status,
 			t.created_at,
 			tl.parent_task_id,
 			tl.ordinal
@@ -58,4 +59,39 @@ export async function getTasks(c, projectId) {
 		.all()
 
 	return groupTasks(results)
+}
+
+export async function updateTask(c, projectId, taskId, newValues) {
+	if (!newValues || typeof newValues !== 'object') {
+		return false
+	}
+
+	const allowedFields = ['title', 'body', 'status']
+	const allowedStatuses = ['unstarted', 'started', 'done']
+	const updates = []
+	const values = []
+
+	for (const field of allowedFields) {
+		if (!Object.hasOwn(newValues, field)) continue
+
+		const value = newValues[field].toString()
+		if (field === 'status' && !allowedStatuses.includes(value)) continue
+
+		updates.push(`${field} = ?`)
+		values.push(value)
+	}
+
+	if (updates.length === 0) return
+
+	return await c.env.DB.prepare(`
+		UPDATE
+			tasks
+		SET
+			${updates.join(',')}
+		WHERE
+			id = ? AND
+			project_id = ?
+	`)
+		.bind(...values, taskId, projectId)
+		.run()
 }

@@ -32,4 +32,17 @@ app.get('/projects/:projectId', async (c) => {
 	})
 })
 
+app.patch('/projects/:projectId', async (c) => {
+	const projectId = c.req.param('projectId')
+
+	for (const [taskId, patch] of Object.entries(await c.req.json())) {
+		await model.updateTask(c, projectId, taskId, patch)
+	}
+
+	return c.json({
+		id: projectId,
+		success: true
+	})
+})
+
 export default app
